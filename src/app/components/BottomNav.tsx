@@ -37,7 +37,7 @@ export default function BottomNav() {
             isActive("/chat") ? "font-bold text-[#B36B00]" : "text-[#B36B00]"
           }`}
         >
-          채팅
+          매칭
         </span>
       </Link>
 
