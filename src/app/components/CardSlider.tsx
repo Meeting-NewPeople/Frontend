@@ -1,7 +1,6 @@
-// components/CardSlider.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const cards = [
   {
@@ -38,6 +37,16 @@ const cards = [
 
 export default function CardSlider() {
   const [index, setIndex] = useState(0);
+  const [likedCards, setLikedCards] = useState<string[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("likedUsers");
+    if (stored) setLikedCards(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("likedUsers", JSON.stringify(likedCards));
+  }, [likedCards]);
 
   const prev = () => {
     setIndex((prevIndex) => (prevIndex === 0 ? cards.length - 1 : prevIndex - 1));
@@ -47,16 +56,38 @@ export default function CardSlider() {
     setIndex((prevIndex) => (prevIndex === cards.length - 1 ? 0 : prevIndex + 1));
   };
 
+  const toggleLike = () => {
+    const name = cards[index].name;
+    setLikedCards((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
+
   const card = cards[index];
+  const isLiked = likedCards.includes(card.name);
 
   return (
     <div className="relative max-w-xs mx-auto mt-10">
       <div className="bg-[#FFF9F2] rounded-3xl shadow-md overflow-hidden border border-[#F5E9DA]">
-        <img src={card.image} alt="profile" className="w-full h-56 object-cover" />
+        <div className="relative">
+          <img src={card.image} alt="profile" className="w-full h-56 object-cover" />
+        </div>
+
         <div className="p-5 space-y-3">
-          <div className="text-lg font-semibold text-[#4B2E2E]">
-            {card.name}, {card.age}
+          {/* 이름 + 하트 */}
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-semibold text-[#4B2E2E]">
+              {card.name}, {card.age}
+            </div>
+            <button
+              onClick={toggleLike}
+              className="text-2xl mt-1 transition hover:scale-110"
+              aria-label="좋아요"
+            >
+              {isLiked ? "❤️" : "🤍"}
+            </button>
           </div>
+
           <div className="text-sm text-[#8A6E5A]">{card.location} · {card.mbti}</div>
           <div className="text-sm text-[#8A6E5A]">{card.school}</div>
 
