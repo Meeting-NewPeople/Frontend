@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {auth} from "../firebase/firebaseConfig";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -9,11 +11,22 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`회원가입 정보: ${email}, ${nickname}`);
-    // 실제 회원가입 처리 로직은 여기에
-    router.push("/login"); // 회원가입 후 로그인 페이지로 이동
+    try {
+      // Firebase에 계정 생성
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // displayName 업데이트 (닉네임 저장)
+      await updateProfile(userCredential.user, {
+        displayName: nickname,
+      });
+
+      alert(`${nickname}님, 회원가입이 완료되었습니다!`);
+      router.push("/login");
+    } catch (error: any) {
+      alert(`회원가입 실패: ${error.message}`);
+    }
   };
 
   return (
