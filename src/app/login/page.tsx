@@ -1,21 +1,37 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import TopNav from "../components/TopNav";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase/firebaseConfig"; // 🔥 auth 가져오기
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`로그인 시도: ${email}`);
-    // 실제 로그인 로직은 여기서 처리
+    try {
+      console.log("로그인 시도:", email); // 👈 입력된 이메일 콘솔에 출력
+  
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+  
+      console.log("✅ 로그인 성공:", user); // 👈 로그인 성공 시 사용자 정보 출력
+      console.log("닉네임:", user.displayName); // 👈 닉네임 확인
+  
+      router.push("/"); // 로그인 후 이동
+    } catch (error: any) {
+      console.error("❌ 로그인 실패:", error); // 👈 에러 콘솔 출력
+    }
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-[#FFFDF9] px-4">
-        <TopNav />
+      <TopNav />
       <h1 className="text-3xl font-bold text-[#D38B70] mb-8">Quokka 로그인</h1>
 
       <form
