@@ -15,10 +15,10 @@ export default function ProfilePage() {
       <TopNav />
 
       {/* 나머지 화면 전체 */}
-      <div className="min-h-screen bg-[#FFFDF9] flex flex-col pt-20">
+      <div className="min-h-screen bg-[#FFFDF9] flex flex-col pt-20 pb-12">
         {/* 🔸 회색 컨테이너: BottomNav 위까지 쭉, 중앙 정렬 */}
-        <div className="flex-grow flex justify-center">
-          <div className="w-full max-w-md bg-[#F6F6F6] rounded-xl shadow p-6 mx-4 space-y-6">
+        <div className="flex justify-center flex-grow">
+  <div className="w-full max-w-md min-h-full bg-[#F6F6F6] flex flex-col rounded-xl shadow p-6 mb-6 mx-4 space-y-6">
 
             {/* 제목 */}
             <h2 className="text-lg font-bold">내 프로필</h2>
