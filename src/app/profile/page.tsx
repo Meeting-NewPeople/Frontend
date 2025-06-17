@@ -1,35 +1,73 @@
 "use client";
 
-import TopNav from "../components/TopNav";
+import { useState } from "react";
+import { Switch } from "@headlessui/react";
+import { ChevronRight } from "lucide-react";
 import BottomNav from "../components/BottomNav";
-import { UserCircle } from "lucide-react";
+import TopNav from "../components/TopNav";
 
 export default function ProfilePage() {
+  const [matching, setMatching] = useState(true);
+
   return (
-    <div className="min-h-screen bg-[#FFFDF9] pt-20 pb-20 px-4">
+    <>
+      {/* 항상 화면 제일 위에 */}
       <TopNav />
 
-      <div className="flex flex-col justify-center items-center text-center h-[calc(100vh-160px)]">
-        <UserCircle size={72} strokeWidth={1.5} className="text-[#D38B70] mb-4" />
-        <h2 className="text-lg font-semibold text-[#D38B70] mb-1">나무잎</h2>
-        <p className="text-sm text-gray-500 mb-4">namuleaf@example.com</p>
+      {/* 나머지 화면 전체 */}
+      <div className="min-h-screen bg-[#FFFDF9] flex flex-col pt-20">
+        {/* 🔸 회색 컨테이너: BottomNav 위까지 쭉, 중앙 정렬 */}
+        <div className="flex-grow flex justify-center">
+          <div className="w-full max-w-md bg-[#F6F6F6] rounded-xl shadow p-6 mx-4 space-y-6">
 
-        <button
-          disabled
-          className="bg-[#D38B70] text-white text-sm px-5 py-2 rounded-full cursor-not-allowed opacity-70 mb-6"
-        >
-          내 정보 수정하기 (준비중)
-        </button>
+            {/* 제목 */}
+            <h2 className="text-lg font-bold">내 프로필</h2>
 
-        <h3 className="text-base font-semibold text-[#D38B70] mb-2">서비스 준비 중입니다</h3>
-        <p className="text-sm text-gray-500 leading-relaxed">
-          마이페이지 기능은 곧 오픈될 예정이에요!
-          <br />
-          조금만 기다려 주세요 💫
-        </p>
+            {/* 로그인 버튼 */}
+            <button className="w-full bg-[#D38B70] text-white font-semibold py-3 rounded-2xl text-base shadow">
+              로그인하기
+            </button>
+
+            {/* 메뉴 카드 */}
+            <div className="bg-white rounded-xl shadow-sm divide-y divide-gray-200 overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-4">
+                <span className="text-sm">매칭 참여</span>
+                <Switch
+                  checked={matching}
+                  onChange={setMatching}
+                  className={`${
+                    matching ? "bg-[#D38B70]" : "bg-gray-300"
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition`}
+                >
+                  <span
+                    className={`${
+                      matching ? "translate-x-6" : "translate-x-1"
+                    } inline-block h-4 w-4 transform bg-white rounded-full transition`}
+                  />
+                </Switch>
+              </div>
+
+              {[
+                "고객센터",
+                "자주 묻는 질문 (FAQ)",
+                "이용약관",
+                "개인정보처리방침",
+              ].map((item) => (
+                <button
+                  key={item}
+                  className="w-full flex items-center justify-between px-4 py-4 text-sm hover:bg-gray-50 transition"
+                >
+                  <span>{item}</span>
+                  <ChevronRight size={16} className="text-[#C2B4A6]" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 하단 고정 네비게이션 */}
+        <BottomNav />
       </div>
-
-      <BottomNav />
-    </div>
+    </>
   );
 }
