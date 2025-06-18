@@ -4,14 +4,15 @@ import "./TopNav.css";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/firebaseConfig";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+
 
 interface Notification {
   from: string;
   type: string;
-  timestamp?: any;
+  timestamp?: Timestamp;
 }
 
 export default function TopNav() {
@@ -21,7 +22,7 @@ export default function TopNav() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const router = useRouter();
-  const pathname = usePathname();
+
 
   // 로그인 상태 확인 및 알림 불러오기
   useEffect(() => {

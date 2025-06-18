@@ -2,7 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { signOut } from "firebase/auth";
+
 
 // TODO: Add SDKs for Firebase products that you
 //  want to use
