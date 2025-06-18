@@ -9,6 +9,7 @@ import TopNav from "../components/TopNav";
 import { signOut } from "firebase/auth";
 import { auth, db } from "../firebase/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
+import { User } from "firebase/auth";
 
 export default function ProfilePage() {
   const [matching, setMatching] = useState(true);
@@ -19,7 +20,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      const user = auth.currentUser;
+      const user: User | null = auth.currentUser;
       if (user) {
         setIsLoggedIn(true);
         const docRef = doc(db, "users", user.uid);

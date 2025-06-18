@@ -19,7 +19,20 @@ export default function SignUpPage() {
   const [tags, setTags] = useState("");
   const [image, setImage] = useState("");
   const [showCongrats, setShowCongrats] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  type UserProfile = {
+    nickname: string;
+    email: string;
+    mbti: string;
+    age: number;
+    location: string;
+    bio: string;
+    tags: string[];
+    image: string;
+    createdAt: Date;
+  };
+  
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+  
 
   const router = useRouter();
 
