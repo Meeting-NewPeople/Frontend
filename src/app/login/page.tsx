@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-[#FFFDF9] px-4">
       <TopNav />
-      <h1 className="text-3xl font-bold text-[#D38B70] mb-8">Quokka 로그인</h1>
+      <h1 className="text-3xl font-bold text-[#D38B70] mb-8">로그인</h1>
 
       <form
         onSubmit={handleLogin}
