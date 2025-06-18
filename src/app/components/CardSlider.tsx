@@ -16,17 +16,29 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../firebase/firebaseConfig";
 
+// 🔸 카드 데이터 타입 정의
+type CardData = {
+  name: string;
+  age: number;
+  location: string;
+  mbti: string;
+  school: string;
+  tags: string[];
+  bio: string;
+  image: string;
+};
+
 export default function CardSlider() {
   const [index, setIndex] = useState(0);
   const [likedCards, setLikedCards] = useState<string[]>([]);
   const [userUid, setUserUid] = useState<string | null>(null);
-  const [cards, setCards] = useState<any[]>([]);
+  const [cards, setCards] = useState<CardData[]>([]);
   const [currentUserNickname, setCurrentUserNickname] = useState<string>("");
 
   useEffect(() => {
     const fetchCards = async () => {
       const querySnapshot = await getDocs(collection(db, "users"));
-      const loadedCards: any[] = [];
+      const loadedCards: CardData[] = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
@@ -68,8 +80,7 @@ export default function CardSlider() {
       } else {
         setUserUid(null);
         const stored = localStorage.getItem("likedUsers");
-        if (stored) setLikedCards(JSON.parse(stored));
-        else setLikedCards([]);
+        setLikedCards(stored ? JSON.parse(stored) : []);
       }
     });
 
@@ -162,7 +173,7 @@ export default function CardSlider() {
           <div className="text-sm text-[#8A6E5A]">{card.school}</div>
 
           <div className="flex flex-wrap gap-2 pt-3">
-            {card.tags.map((tag: string) => (
+            {card.tags.map((tag) => (
               <span
                 key={tag}
                 className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"

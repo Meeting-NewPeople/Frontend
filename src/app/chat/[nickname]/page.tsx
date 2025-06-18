@@ -1,10 +1,8 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import TopNav from "../../components/TopNav";
-import BottomNav from "../../components/BottomNav";
 import { useEffect, useState } from "react";
-import { db, auth } from "../../firebase/firebaseConfig";
+import { useParams } from "next/navigation";
+import { useAuthState } from "react-firebase-hooks/auth";
 import {
   collection,
   query,
@@ -12,29 +10,39 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
-  getDocs
+  getDocs,
+  Timestamp,
 } from "firebase/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
+import TopNav from "../../components/TopNav";
+import BottomNav from "../../components/BottomNav";
+import { db, auth } from "../../firebase/firebaseConfig";
+
+// 🔸 Chat 메시지 타입 명시
+type ChatMessage = {
+  from: string;
+  text: string;
+  timestamp: Timestamp;
+};
 
 export default function ChatDetailPage() {
-    const { nickname: encodedNickname } = useParams();
-    const theirNickname = decodeURIComponent(
-        typeof encodedNickname === "string" ? encodedNickname : encodedNickname?.[0] ?? ""
-      );
+  const { nickname: encodedNickname } = useParams();
+  const theirNickname = decodeURIComponent(
+    typeof encodedNickname === "string" ? encodedNickname : encodedNickname?.[0] ?? ""
+  );
+
   const [user] = useAuthState(auth);
   const [myNickname, setMyNickname] = useState("");
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
   const roomId = [myNickname, theirNickname].sort().join("_");
 
-  // 내 닉네임 가져오기
+  // 🔸 내 닉네임 가져오기
   useEffect(() => {
     if (!user) return;
     const fetchNickname = async () => {
-      const docRef = collection(db, "users");
-      const snap = await getDocs(docRef);
-      snap.forEach((doc) => {
+      const userDocs = await getDocs(collection(db, "users"));
+      userDocs.forEach((doc) => {
         if (doc.id === user.uid) {
           setMyNickname(doc.data().nickname);
         }
@@ -43,7 +51,7 @@ export default function ChatDetailPage() {
     fetchNickname();
   }, [user]);
 
-  // 실시간 메시지 수신
+  // 🔸 실시간 메시지 수신
   useEffect(() => {
     if (!roomId) return;
 
@@ -51,15 +59,16 @@ export default function ChatDetailPage() {
       collection(db, "chatRooms", roomId, "messages"),
       orderBy("timestamp")
     );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map((doc) => doc.data());
+      const msgs = snapshot.docs.map((doc) => doc.data() as ChatMessage);
       setMessages(msgs);
     });
 
     return () => unsubscribe();
   }, [roomId]);
 
-  // 메시지 전송
+  // 🔸 메시지 전송
   const sendMessage = async () => {
     if (!input.trim() || !myNickname || !theirNickname) return;
 
