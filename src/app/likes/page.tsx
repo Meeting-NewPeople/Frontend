@@ -24,7 +24,7 @@ export default function LikesPage() {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        const likedNames = docSnap.data().likedUsers || []; // 🔑 여기 필드명 맞춤
+        const likedNames = docSnap.data().likedUsers || [];
         const filtered = cards.filter((card) => likedNames.includes(card.name));
         setLikedProfiles(filtered);
       }
@@ -45,15 +45,10 @@ export default function LikesPage() {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-b from-[#FFF3E6] to-[#FFEAD8] text-center px-6 space-y-4">
         <div className="text-6xl mb-2 animate-bounce">🤎</div>
-  
-        <p className="text-[#B36B00] text-2xl font-bold mb-4">
-  로그인이 필요해요
-</p>
-
-<p className="text-[#8A6E5A] text-base leading-relaxed mb-4">
-  좋아요한 프로필을 확인하려면<br />먼저 로그인해주세요
-</p>
-  
+        <p className="text-[#B36B00] text-2xl font-bold mb-4">로그인이 필요해요</p>
+        <p className="text-[#8A6E5A] text-base leading-relaxed mb-4">
+          좋아요한 프로필을 확인하려면<br />먼저 로그인해주세요
+        </p>
         <button
           onClick={() => router.push("/login")}
           className="bg-[#D38B70] text-white px-6 py-2 rounded-xl hover:bg-[#b7745a] transition mt-2"
@@ -63,9 +58,8 @@ export default function LikesPage() {
       </div>
     );
   }
-  
-  
-  const visibleProfiles = showAll ? likedProfiles : likedProfiles.slice(0, 3);
+
+  const visibleProfiles = showAll ? likedProfiles : likedProfiles.slice(0, 6);
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] flex flex-col">
@@ -83,49 +77,45 @@ export default function LikesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 w-full max-w-md">
+          <div className="grid grid-cols-2 gap-4 w-full max-w-md">
             {visibleProfiles.map((card) => (
               <div
                 key={card.name}
-                className="bg-[#FFF9F2] w-full rounded-3xl shadow-md border border-[#F5E9DA] overflow-hidden"
+                className="bg-white rounded-xl shadow-sm border border-[#F1E8DC] overflow-hidden"
               >
                 <img
                   src={card.image}
                   alt={card.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full aspect-square object-cover"
                 />
-                <div className="p-5 space-y-2 text-left">
-                  <div className="text-lg font-semibold text-[#4B2E2E]">
+                <div className="p-3 space-y-1 text-left">
+                  <div className="text-sm font-semibold text-[#4B2E2E]">
                     {card.name}, {card.age}
                   </div>
-                  <div className="text-sm text-[#8A6E5A]">
-                    {card.location} · {card.mbti}
-                  </div>
-                  <div className="text-sm text-[#8A6E5A]">{card.school}</div>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {card.tags.map((tag) => (
+                  <div className="text-xs text-[#8A6E5A]">{card.mbti}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {card.tags.slice(0, 2).map((tag) => (
                       <span
                         key={tag}
-                        className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"
+                        className="bg-[#FFF1E0] text-[#B36B00] text-[10px] px-2 py-0.5 rounded-full"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <p className="text-sm text-[#5E4A3B] pt-1">{card.bio}</p>
                 </div>
               </div>
             ))}
-
-            {likedProfiles.length > 3 && (
-              <button
-                className="mt-6 text-[#B36B00] underline text-sm"
-                onClick={() => setShowAll((prev) => !prev)}
-              >
-                {showAll ? "접기" : "더보기"}
-              </button>
-            )}
           </div>
+        )}
+
+        {likedProfiles.length > 6 && (
+          <button
+            className="mt-6 text-[#B36B00] underline text-sm"
+            onClick={() => setShowAll((prev) => !prev)}
+          >
+            {showAll ? "접기" : "더보기"}
+          </button>
         )}
       </main>
 
