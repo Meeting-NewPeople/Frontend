@@ -38,7 +38,8 @@ export default function LikesPage() {
   
       // 🔽 모든 유저 카드 정보 가져오기
       const querySnapshot = await getDocs(collection(db, "users"));
-      const loadedCards: any[] = [];
+      const loadedCards: ProfileCard[] = [];
+
   
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();

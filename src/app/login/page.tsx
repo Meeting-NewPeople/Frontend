@@ -24,10 +24,14 @@ export default function LoginPage() {
       console.log("닉네임:", user.displayName); // 👈 닉네임 확인
   
       router.push("/"); // 로그인 후 이동
-    } catch (error: any) {
-      console.error("❌ 로그인 실패:", error); // 👈 에러 콘솔 출력
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("❌ 로그인 실패:", error.message);
+      } else {
+        console.error("❌ 알 수 없는 오류:", error);
+      }
     }
-  };
+  }
   
 
   return (
