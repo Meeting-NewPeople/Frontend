@@ -9,10 +9,22 @@ import BottomNav from "../components/BottomNav";
 import { MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// 🔸 유저 타입 정의
+type UserData = {
+  nickname: string;
+  age: number;
+  mbti: string;
+  location?: string;
+  tags?: string[];
+  image?: string;
+  bio?: string;
+  likedUsers?: string[];
+};
+
 export default function ChatPage() {
   const [user, loading] = useAuthState(auth);
-  const [mutuals, setMutuals] = useState<any[]>([]);
-  const [myData, setMyData] = useState<any>(null);
+  const [mutuals, setMutuals] = useState<UserData[]>([]);
+  const [myData, setMyData] = useState<UserData | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -22,16 +34,16 @@ export default function ChatPage() {
       const myDoc = await getDoc(doc(db, "users", user.uid));
       if (!myDoc.exists()) return;
 
-      const myData = myDoc.data();
+      const myData = myDoc.data() as UserData;
       setMyData(myData);
 
       const myLikes: string[] = myData.likedUsers || [];
 
       const usersSnap = await getDocs(collection(db, "users"));
-      const mutuals: any[] = [];
+      const mutuals: UserData[] = [];
 
       usersSnap.forEach((docSnap) => {
-        const data = docSnap.data();
+        const data = docSnap.data() as UserData;
         if (
           data.nickname &&
           myLikes.includes(data.nickname) &&
@@ -69,7 +81,6 @@ export default function ChatPage() {
                 key={user.nickname}
                 className="bg-white rounded-xl shadow border border-[#F1E8DC] overflow-hidden cursor-pointer"
                 onClick={() => {
-                  // 👇 채팅 페이지로 이동 예정
                   alert(`${user.nickname}님과의 채팅으로 이동합니다`);
                   setTimeout(() => {
                     router.push(`/chat/${user.nickname}`);
