@@ -116,31 +116,31 @@ export default function SignUpPage() {
         className="bg-white shadow-md rounded-2xl w-full max-w-sm px-8 py-6 space-y-4 border border-[#F5E9DA]"
       >
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="이메일"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} required placeholder="닉네임"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="비밀번호"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="text" value={mbti} onChange={(e) => setMbti(e.target.value)} placeholder="MBTI"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="나이"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="지역"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="text" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="한 줄 소개"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="text" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="관심 태그 (예: 캠핑, 산책)"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
         
         <input type="text" value={image} onChange={(e) => setImage(e.target.value)} placeholder="프로필 이미지 URL"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white" />
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#D38B70] focus:border-[#D38B70] text-sm placeholder-gray-400 bg-white text-black" />
 
 
         <button type="submit" className="w-full bg-[#D38B70] text-white py-2 rounded-lg hover:bg-[#c5775e] transition">
