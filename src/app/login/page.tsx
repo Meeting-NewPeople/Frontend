@@ -6,6 +6,7 @@ import TopNav from "../components/TopNav";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebaseConfig"; // 🔥 auth 가져오기
 
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

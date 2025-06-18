@@ -26,4 +26,3 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);         // ✅ 이 줄 추가해야 Firebase Auth 사용 가능
 export const db = getFirestore(app);
 
-await signOut(auth); 
