@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import TopNav from "../components/TopNav";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/firebaseConfig"; // 🔥 auth 가져오기
-
+import { auth } from "../firebase/firebaseConfig";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -15,24 +14,25 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      console.log("로그인 시도:", email); // 👈 입력된 이메일 콘솔에 출력
-  
+      console.log("로그인 시도:", email);
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
-      console.log("✅ 로그인 성공:", user); // 👈 로그인 성공 시 사용자 정보 출력
-      console.log("닉네임:", user.displayName); // 👈 닉네임 확인
-  
-      router.push("/"); // 로그인 후 이동
+
+      console.log("✅ 로그인 성공:", user);
+      console.log("닉네임:", user.displayName);
+
+      router.push("/");
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("❌ 로그인 실패:", error.message);
+        alert(`로그인 실패: ${error.message}`);
       } else {
         console.error("❌ 알 수 없는 오류:", error);
+        alert("로그인 중 알 수 없는 오류가 발생했습니다.");
       }
     }
-  }
-  
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-[#FFFDF9] px-4">
@@ -44,9 +44,7 @@ export default function LoginPage() {
         className="bg-white shadow-md rounded-2xl w-full max-w-sm px-8 py-6 space-y-5 border border-[#F5E9DA]"
       >
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
-            이메일
-          </label>
+          <label className="block text-sm font-medium text-gray-600 mb-1">이메일</label>
           <input
             type="email"
             value={email}
@@ -58,9 +56,7 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-600 mb-1">
-            비밀번호
-          </label>
+          <label className="block text-sm font-medium text-gray-600 mb-1">비밀번호</label>
           <input
             type="password"
             value={password}

@@ -7,6 +7,17 @@ import { auth, db } from "../firebase/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
 import Card from "../components/myCard";
 
+type UserProfile = {
+  nickname: string;
+  email: string;
+  mbti: string;
+  age: number;
+  location: string;
+  bio: string;
+  tags: string[];
+  image: string;
+  createdAt: Date;
+};
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -19,20 +30,7 @@ export default function SignUpPage() {
   const [tags, setTags] = useState("");
   const [image, setImage] = useState("");
   const [showCongrats, setShowCongrats] = useState(false);
-  type UserProfile = {
-    nickname: string;
-    email: string;
-    mbti: string;
-    age: number;
-    location: string;
-    bio: string;
-    tags: string[];
-    image: string;
-    createdAt: Date;
-  };
-  
   const [userData, setUserData] = useState<UserProfile | null>(null);
-  
 
   const router = useRouter();
 
@@ -44,7 +42,7 @@ export default function SignUpPage() {
 
       await updateProfile(user, { displayName: nickname });
 
-      const profile = {
+      const profile: UserProfile = {
         nickname,
         email,
         mbti,
@@ -60,8 +58,12 @@ export default function SignUpPage() {
 
       setUserData(profile);
       setShowCongrats(true);
-    } catch (error: any) {
-      alert(`회원가입 실패: ${error.message}`);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(`회원가입 실패: ${error.message}`);
+      } else {
+        alert(`회원가입 실패: 알 수 없는 오류`);
+      }
     }
   };
 
@@ -71,22 +73,20 @@ export default function SignUpPage() {
         <h1 className="text-2xl font-bold text-[#D38B70] mb-6">
           {userData.nickname}님, 새로운 프로필 생성을 축하드려요!!! 🎉
         </h1>
-  
+
         <div className="bg-white shadow-lg rounded-3xl border border-[#F5E9DA] p-6 w-full max-w-sm mb-8 space-y-4">
           <img
             src={userData.image || "/default-profile.png"}
             alt={userData.nickname}
             className="w-24 h-24 rounded-full object-cover mx-auto border border-gray-200"
           />
-          <div className="text-lg font-semibold text-[#4B2E2E]">
-            {userData.nickname}
-          </div>
+          <div className="text-lg font-semibold text-[#4B2E2E]">{userData.nickname}</div>
           <div className="text-sm text-[#8A6E5A]">
             {userData.mbti} / {userData.age}세 / {userData.location}
           </div>
           <p className="text-sm text-[#5E4A3B]">{userData.bio}</p>
           <div className="flex flex-wrap justify-center gap-2 pt-2">
-            {userData.tags?.map((tag: string, index: number) => (
+            {userData.tags.map((tag, index) => (
               <span
                 key={index}
                 className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"
@@ -96,7 +96,7 @@ export default function SignUpPage() {
             ))}
           </div>
         </div>
-  
+
         <button
           onClick={() => router.push("/")}
           className="bg-[#D38B70] text-white px-6 py-2 rounded-xl hover:bg-[#c5775e] transition"
@@ -106,7 +106,6 @@ export default function SignUpPage() {
       </div>
     );
   }
-  
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-[#FFFDF9] px-4">
