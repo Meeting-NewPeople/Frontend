@@ -1,17 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove,collection } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../firebase/firebaseConfig";
-import {cards} from "../components/data/cards";
+
 
 
 export default function CardSlider() {
   const [index, setIndex] = useState(0);
   const [likedCards, setLikedCards] = useState<string[]>([]);
   const [userUid, setUserUid] = useState<string | null>(null);
+  const [cards, setCards] = useState<any[]>([]);
 
+  useEffect(() => {
+    const fetchCards = async () => {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      const loadedCards: any[] = [];
+  
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.nickname && data.age) {
+          loadedCards.push({
+            name: data.nickname,
+            age: data.age,
+            location: data.location,
+            mbti: data.mbti,
+            school: data.school ?? "", // 선택적으로
+            tags: data.tags ?? [],
+            bio: data.bio ?? "",
+            image: data.image.trim() || "/default-profile.png",
+          });
+        }
+      });
+  
+      setCards(loadedCards);
+    };
+  
+    fetchCards();
+  }, []);
   // 로그인 상태 감지 + 데이터 가져오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -78,6 +105,15 @@ export default function CardSlider() {
   const prev = () => setIndex((prev) => (prev === 0 ? cards.length - 1 : prev - 1));
   const next = () => setIndex((prev) => (prev === cards.length - 1 ? 0 : prev + 1));
 
+
+  if (cards.length === 0) {
+    return (
+      <div className="text-center mt-10 text-[#B36B00]">
+        불러올 카드가 없습니다 😢
+      </div>
+    );
+  }
+
   const card = cards[index];
   const isLiked = likedCards.includes(card.name);
 
@@ -106,14 +142,14 @@ export default function CardSlider() {
           <div className="text-sm text-[#8A6E5A]">{card.school}</div>
 
           <div className="flex flex-wrap gap-2 pt-3">
-            {card.tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"
-              >
-                {tag}
-              </span>
-            ))}
+          {card.tags.map((tag: string) => (
+  <span
+    key={tag}
+    className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"
+  >
+    {tag}
+  </span>
+))}
           </div>
 
           <p className="text-sm text-[#5E4A3B] leading-relaxed pt-2">
