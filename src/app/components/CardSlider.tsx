@@ -1,23 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, arrayRemove,collection } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  collection,
+  query,
+  where
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../firebase/firebaseConfig";
-
-
 
 export default function CardSlider() {
   const [index, setIndex] = useState(0);
   const [likedCards, setLikedCards] = useState<string[]>([]);
   const [userUid, setUserUid] = useState<string | null>(null);
   const [cards, setCards] = useState<any[]>([]);
+  const [currentUserNickname, setCurrentUserNickname] = useState<string>("");
 
   useEffect(() => {
     const fetchCards = async () => {
       const querySnapshot = await getDocs(collection(db, "users"));
       const loadedCards: any[] = [];
-  
+
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.nickname && data.age) {
@@ -26,24 +36,26 @@ export default function CardSlider() {
             age: data.age,
             location: data.location,
             mbti: data.mbti,
-            school: data.school ?? "", // 선택적으로
+            school: data.school ?? "",
             tags: data.tags ?? [],
             bio: data.bio ?? "",
-            image: data.image.trim() || "/default-profile.png",
+            image: data.image?.trim() || "/default-profile.png",
           });
         }
       });
-  
+
       setCards(loadedCards);
     };
-  
+
     fetchCards();
   }, []);
-  // 로그인 상태 감지 + 데이터 가져오기
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserUid(user.uid);
+        setCurrentUserNickname(user.displayName ?? "익명");
+
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -64,36 +76,49 @@ export default function CardSlider() {
     return () => unsubscribe();
   }, []);
 
-  // 좋아요 토글
   const toggleLike = async () => {
-    console.log("하트 클릭됨");
-    const name = cards[index].name;
+    const card = cards[index];
+    const name = card.name;
     const isLiked = likedCards.includes(name);
 
+    if (!isLiked && userUid) {
+      const targetQuery = query(collection(db, "users"), where("nickname", "==", name));
+      const targetSnap = await getDocs(targetQuery);
+
+      if (!targetSnap.empty) {
+        const targetDocRef = targetSnap.docs[0].ref;
+        const now = new Date();
+
+        await updateDoc(targetDocRef, {
+          notifications: arrayUnion({
+            from: currentUserNickname,
+            type: "like",
+            timestamp: now,
+          }),
+        });
+      }
+    }
+
     if (userUid) {
-      // 로그인한 경우 → Firebase 저장
       const docRef = doc(db, "users", userUid);
-      if (userUid) {
-        const docRef = doc(db, "users", userUid);
-        try {
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) {
-            await setDoc(docRef, { likedUsers: [] }); // 먼저 문서 생성
-          }
-    
-          if (isLiked) {
-            await updateDoc(docRef, { likedUsers: arrayRemove(name) });
-            setLikedCards((prev) => prev.filter((n) => n !== name));
-          } else {
-            await updateDoc(docRef, { likedUsers: arrayUnion(name) });
-            setLikedCards((prev) => [...prev, name]);
-          }
-        } catch (err) {
-          console.error("Firestore 저장 오류:", err);
+
+      try {
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) {
+          await setDoc(docRef, { likedUsers: [] });
         }
+
+        if (isLiked) {
+          await updateDoc(docRef, { likedUsers: arrayRemove(name) });
+          setLikedCards((prev) => prev.filter((n) => n !== name));
+        } else {
+          await updateDoc(docRef, { likedUsers: arrayUnion(name) });
+          setLikedCards((prev) => [...prev, name]);
+        }
+      } catch (err) {
+        console.error("Firestore 저장 오류:", err);
       }
     } else {
-      // 로그인 안 된 경우 → localStorage 저장
       const updated = isLiked
         ? likedCards.filter((n) => n !== name)
         : [...likedCards, name];
@@ -105,13 +130,8 @@ export default function CardSlider() {
   const prev = () => setIndex((prev) => (prev === 0 ? cards.length - 1 : prev - 1));
   const next = () => setIndex((prev) => (prev === cards.length - 1 ? 0 : prev + 1));
 
-
   if (cards.length === 0) {
-    return (
-      <div className="text-center mt-10 text-[#B36B00]">
-        불러올 카드가 없습니다 😢
-      </div>
-    );
+    return <div className="text-center mt-10 text-[#B36B00]">불러올 카드가 없습니다 😢</div>;
   }
 
   const card = cards[index];
@@ -142,19 +162,17 @@ export default function CardSlider() {
           <div className="text-sm text-[#8A6E5A]">{card.school}</div>
 
           <div className="flex flex-wrap gap-2 pt-3">
-          {card.tags.map((tag: string) => (
-  <span
-    key={tag}
-    className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"
-  >
-    {tag}
-  </span>
-))}
+            {card.tags.map((tag: string) => (
+              <span
+                key={tag}
+                className="bg-[#FFEEDB] text-[#B36B00] text-xs px-3 py-1 rounded-full shadow-sm"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
 
-          <p className="text-sm text-[#5E4A3B] leading-relaxed pt-2">
-            {card.bio}
-          </p>
+          <p className="text-sm text-[#5E4A3B] leading-relaxed pt-2">{card.bio}</p>
         </div>
       </div>
 
@@ -173,4 +191,3 @@ export default function CardSlider() {
     </div>
   );
 }
-

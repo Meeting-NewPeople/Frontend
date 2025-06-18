@@ -6,50 +6,42 @@ import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/firebaseConfig";
-import {usePathname, useRouter} from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
+interface Notification {
+  from: string;
+  type: string;
+  timestamp?: any;
+}
 
 export default function TopNav() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const router = useRouter();
+  const pathname = usePathname();
 
-  useEffect(() => {
-    const checkProfile = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-  
-      const pathname = window.location.pathname; // ✅ 현재 경로 확인
-      if (pathname === "/profile/edit") return;  // ✅ 등록 페이지면 무시
-  
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-  
-      if (!docSnap.exists()) {
-        router.push("/profile/require");
-      }
-    };
-  
-    checkProfile();
-  }, []);
-
-  // 알림 더미 데이터
-  const likedUsers = ["다정한쥐", "호기심많은토끼"];
-
+  // 로그인 상태 확인 및 알림 불러오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setIsLoading(false);
 
-      // ✅ 로그인 후 프로필 등록 여부 확인
       if (currentUser) {
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
+        const userDocRef = doc(db, "users", currentUser.uid);
+        const docSnap = await getDoc(userDocRef);
 
+        // ❗ 프로필 미등록 시 안내 페이지로 리다이렉트
         if (!docSnap.exists()) {
-          router.push("/profile/require"); // 프로필 등록 안내 페이지로 이동
+          router.push("/profile/require");
+          return;
         }
+
+        // ✅ 알림 불러오기
+        const data = docSnap.data();
+        setNotifications(data.notifications || []);
       }
     });
 
@@ -86,15 +78,15 @@ export default function TopNav() {
             </button>
             {showNotifications && (
               <div className="notification-box">
-                {likedUsers.length > 0 ? (
-                  likedUsers.map((name, index) => (
+                {notifications.length > 0 ? (
+                  notifications.map((noti, index) => (
                     <div key={index} className="notification-item">
-                      ❤️ {name} 님이 당신을 좋아합니다
+                      ❤️ {noti.from} 님이 당신을 좋아합니다
                     </div>
                   ))
                 ) : (
                   <div className="notification-empty">
-                    좋아요를 보낸 사람이 아직 없습니다
+                    아직 알림이 없습니다
                   </div>
                 )}
               </div>

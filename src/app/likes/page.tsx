@@ -7,31 +7,59 @@ import { auth, db } from "../firebase/firebaseConfig";
 import { Heart } from "lucide-react";
 import TopNav from "../components/TopNav";
 import BottomNav from "../components/BottomNav";
-import { cards } from "../components/data/cards";
+import { collection, getDocs } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function LikesPage() {
   const [user, loading] = useAuthState(auth);
-  const [likedProfiles, setLikedProfiles] = useState<typeof cards>([]);
+  type ProfileCard = {
+    name: string;
+    age: number;
+    mbti: string;
+    location: string;
+    tags: string[];
+    image: string;
+  };
+  
+  const [likedProfiles, setLikedProfiles] = useState<ProfileCard[]>([]);
+  
   const [showAll, setShowAll] = useState(false);
   const router = useRouter();
+  
 
   useEffect(() => {
-    const fetchLikes = async () => {
+    const fetchLikedProfiles = async () => {
       if (!user) return;
-
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const likedNames = docSnap.data().likedUsers || [];
-        const filtered = cards.filter((card) => likedNames.includes(card.name));
-        setLikedProfiles(filtered);
-      }
+  
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) return;
+  
+      const likedNames = userDoc.data().likedUsers || [];
+  
+      // 🔽 모든 유저 카드 정보 가져오기
+      const querySnapshot = await getDocs(collection(db, "users"));
+      const loadedCards: any[] = [];
+  
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        if (likedNames.includes(data.nickname)) {
+          loadedCards.push({
+            name: data.nickname,
+            age: data.age,
+            mbti: data.mbti,
+            location: data.location,
+            tags: data.tags || [],
+            image: data.image || "/default-profile.png",
+          });
+        }
+      });
+  
+      setLikedProfiles(loadedCards);
     };
-
-    fetchLikes();
+  
+    fetchLikedProfiles();
   }, [user]);
+  
 
   if (loading) {
     return (
@@ -78,7 +106,14 @@ export default function LikesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-            {visibleProfiles.map((card) => (
+            {visibleProfiles.map((card: {
+  name: string;
+  age: number;
+  mbti: string;
+  location: string;
+  tags: string[];
+  image: string;
+}) => (
               <div
                 key={card.name}
                 className="bg-white rounded-xl shadow-sm border border-[#F1E8DC] overflow-hidden"
@@ -94,14 +129,15 @@ export default function LikesPage() {
                   </div>
                   <div className="text-xs text-[#8A6E5A]">{card.mbti}</div>
                   <div className="flex flex-wrap gap-1">
-                    {card.tags.slice(0, 2).map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-[#FFF1E0] text-[#B36B00] text-[10px] px-2 py-0.5 rounded-full"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  {card.tags.slice(0, 2).map((tag: string) => (
+  <span
+    key={tag}
+    className="bg-[#FFF1E0] text-[#B36B00] text-[10px] px-2 py-0.5 rounded-full"
+  >
+    {tag}
+  </span>
+))}
+
                   </div>
                 </div>
               </div>
