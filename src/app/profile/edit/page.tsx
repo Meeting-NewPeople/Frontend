@@ -127,20 +127,20 @@ export default function EditProfilePage() {
           placeholder="나이"
           value={userData.age}
           onChange={(e) => setUserData({ ...userData, age: e.target.value })}
-          className="text-sm text-center w-full border px-2 py-1 rounded"
+          className="text-sm text-center w-full border px-2 py-1 rounded text-black"
         />
         <input
           type="text"
           placeholder="지역"
           value={userData.location}
           onChange={(e) => setUserData({ ...userData, location: e.target.value })}
-          className="text-sm text-center w-full border px-2 py-1 rounded"
+          className="text-sm text-center w-full border px-2 py-1 rounded text-black"
         />
         <textarea
           placeholder="한 줄 소개"
           value={userData.bio}
           onChange={(e) => setUserData({ ...userData, bio: e.target.value })}
-          className="text-sm text-center w-full border p-2 rounded"
+          className="text-sm text-center w-full border p-2 rounded text-black"
         />
         <input
           type="text"
@@ -152,7 +152,7 @@ export default function EditProfilePage() {
               tags: e.target.value.split(",").map((tag) => tag.trim()),
             })
           }
-          className="text-xs text-center w-full border px-2 py-1 rounded"
+          className="text-xs text-center w-full border px-2 py-1 rounded text-black"
         />
         <button
           onClick={handleSave}
