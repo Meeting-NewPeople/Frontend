@@ -91,7 +91,10 @@ export default function CardSlider() {
     const card = cards[index];
     const name = card.name;
     const isLiked = likedCards.includes(name);
-
+    if (!userUid) {
+      alert("로그인이 필요해요!");
+      return;
+    }
     if (!isLiked && userUid) {
       const targetQuery = query(collection(db, "users"), where("nickname", "==", name));
       const targetSnap = await getDocs(targetQuery);

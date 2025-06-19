@@ -40,8 +40,10 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setIsLoggedIn(false);         // 로그인 상태 false로
+      setMatching(false);           // 매칭 참여도 false로 변경
       alert("로그아웃되었습니다.");
-      router.refresh(); // 상태 새로고침
+      router.refresh();             // 페이지 새로고침
     } catch (error) {
       console.error("로그아웃 실패:", error);
     }

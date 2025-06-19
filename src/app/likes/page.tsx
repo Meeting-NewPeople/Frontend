@@ -90,8 +90,18 @@ export default function LikesPage() {
       <TopNav />
 
       <main className="flex-grow pt-24 pb-28 px-4 flex flex-col items-center">
+        <div className="text-center mb-6">
+          <p className="text-[#8A6E5A] text-base leading-relaxed">
+            내가 좋아요를 누른 프로필들이에요 🤎
+            <br />
+            <span className="text-sm text-[#A27C68]">
+              (서로 좋아요하면 채팅이 열려요!)
+            </span>
+          </p>
+        </div>
+
         {likedProfiles.length === 0 ? (
-          <div className="text-center mt-20">
+          <div className="text-center mt-10">
             <Heart size={64} strokeWidth={1.5} className="text-[#D38B70] mb-6" />
             <h1 className="text-2xl font-bold text-[#D38B70] mb-2">
               좋아요를 누른 사람이 아직 없습니다
