@@ -4,14 +4,15 @@ import "./TopNav.css";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 
 interface Notification {
   from: string;
-  type: string;
+  type: "like" | "withdrawal";
   timestamp?: Timestamp;
+  status?: "pending" | "accepted" | "rejected";
 }
 
 export default function TopNav() {
@@ -19,89 +20,105 @@ export default function TopNav() {
   const [isLoading, setIsLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-
   const router = useRouter();
 
-  // 로그인 상태 확인 및 알림 불러오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setIsLoading(false);
-
       if (currentUser) {
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(userDocRef);
-
-        if (!docSnap.exists()) {
-          alert("프로필 정보가 존재하지 않습니다. 회원가입 후 이용해주세요.");
+        const ref = doc(db, "users", currentUser.uid);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          alert("프로필 정보가 없습니다.");
           return;
         }
-        
-
-        const data = docSnap.data();
-        setNotifications(data.notifications || []);
+        setNotifications(snap.data().notifications || []);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("로그아웃하시겠습니까?");
-    if (!confirmLogout) return;
+    if (!confirm("로그아웃하시겠습니까?")) return;
+    await signOut(auth);
+    setUser(null);
+    router.push("/");
+  };
 
-    try {
-      await signOut(auth);
-      setUser(null);
-      router.push("/");
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
+  const updateNotification = async (idx: number, status: "accepted" | "rejected") => {
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+  
+    let updated = [...notifications];
+  
+    if (status === "rejected") {
+      // 거절한 알림 삭제
+      updated.splice(idx, 1);
+    } else {
+      // 수락 시 상태만 업데이트
+      const notif = notifications[idx];
+      updated[idx] = { ...notif, status };
+    }
+  
+    await updateDoc(userRef, { notifications: updated });
+    setNotifications(updated);
+  
+    if (status === "accepted") {
+      alert(`${notifications[idx].from} 님과 매칭되었습니다! 🎉`);
+    } else {
+      alert(`${notifications[idx].from} 님의 요청을 거절했습니다.`);
     }
   };
+  
 
   return (
     <header className="topnav">
       <Link href="/">
         <h1 className="logo">Quokka</h1>
       </Link>
-
       <div className="nav-actions">
         {user && (
           <div className="notification-wrapper">
-            <button
-              className="alert-btn"
-              onClick={() => setShowNotifications((prev) => !prev)}
-            >
+            <button className="alert-btn" onClick={() => setShowNotifications(prev => !prev)}>
               🔔 알림
             </button>
             {showNotifications && (
               <div className="notification-box">
-                {notifications.length > 0 ? (
-                  notifications.map((noti, index) => (
-                    <div key={index} className="notification-item">
-                      {noti.type === "like"
-                        ? `❤️ ${noti.from} 님이 당신을 좋아합니다`
-                        : `⚠️ ${noti.from} 님이 탈퇴하였습니다`}
-                    </div>
-                  ))
-                ) : (
-                  <div className="notification-empty">아직 알림이 없습니다</div>
-                )}
+                {notifications.length > 0 ? notifications.map((n, i) => (
+                  <div key={i} className="notification-item">
+                    {n.type === "like" && (!n.status || n.status === "pending") && (
+                      <>
+                        <p>
+                          <strong>{n.from}</strong> 님이 회원님의 프로필에 좋아요를 눌렀습니다.  
+                          수락하시겠습니까?
+                        </p>
+                        <div className="btn-group">
+                          <button onClick={() => updateNotification(i, "accepted")} className="btn-accept">수락</button>
+                          <button onClick={() => updateNotification(i, "rejected")} className="btn-reject">거절</button>
+                        </div>
+                      </>
+                    )}
+                    {n.type === "like" && n.status === "accepted" && (
+                      <p>💌 <strong>{n.from}</strong> 님과 매칭되었습니다.</p>
+                    )}
+                    {n.type === "like" && n.status === "rejected" && (
+                      <p>❌ <strong>{n.from}</strong> 님의 좋아요 요청을 거절하셨습니다.</p>
+                    )}
+                    {n.type === "withdrawal" && (
+                      <p>⚠️ <strong>{n.from}</strong> 님이 탈퇴하였습니다.</p>
+                    )}
+                  </div>
+                )) : <div className="notification-empty">알림이 없습니다</div>}
               </div>
             )}
           </div>
         )}
-
-        {!isLoading &&
-          (user ? (
-            <button onClick={handleLogout} className="auth-btn">
-              로그아웃
-            </button>
-          ) : (
-            <button onClick={() => router.push("/login")} className="auth-btn">
-              로그인
-            </button>
-          ))}
+        {!isLoading && (
+          user
+            ? <button onClick={handleLogout} className="auth-btn">로그아웃</button>
+            : <button onClick={() => router.push("/login")} className="auth-btn">로그인</button>
+        )}
       </div>
     </header>
   );
