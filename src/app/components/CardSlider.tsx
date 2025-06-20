@@ -11,12 +11,11 @@ import {
   arrayRemove,
   collection,
   query,
-  where
+  where,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { db, auth } from "../firebase/firebaseConfig";
 
-// 🔸 카드 데이터 타입 정의
 type CardData = {
   name: string;
   age: number;
@@ -36,13 +35,17 @@ export default function CardSlider() {
   const [currentUserNickname, setCurrentUserNickname] = useState<string>("");
 
   useEffect(() => {
+    if (!userUid) return;
+
     const fetchCards = async () => {
       const querySnapshot = await getDocs(collection(db, "users"));
       const loadedCards: CardData[] = [];
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.nickname && data.age) {
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        // ✅ 자기 자신의 카드 제외
+        if (docSnap.id !== userUid && data.nickname && data.age) {
           loadedCards.push({
             name: data.nickname,
             age: data.age,
@@ -60,7 +63,7 @@ export default function CardSlider() {
     };
 
     fetchCards();
-  }, []);
+  }, [userUid]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -91,53 +94,44 @@ export default function CardSlider() {
     const card = cards[index];
     const name = card.name;
     const isLiked = likedCards.includes(name);
+
     if (!userUid) {
       alert("로그인이 필요해요!");
       return;
     }
-    if (!isLiked && userUid) {
+
+    if (!isLiked) {
       const targetQuery = query(collection(db, "users"), where("nickname", "==", name));
       const targetSnap = await getDocs(targetQuery);
 
       if (!targetSnap.empty) {
         const targetDocRef = targetSnap.docs[0].ref;
-        const now = new Date();
-
         await updateDoc(targetDocRef, {
           notifications: arrayUnion({
             from: currentUserNickname,
             type: "like",
-            timestamp: now,
+            timestamp: new Date(),
           }),
         });
       }
     }
 
-    if (userUid) {
-      const docRef = doc(db, "users", userUid);
-
-      try {
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) {
-          await setDoc(docRef, { likedUsers: [] });
-        }
-
-        if (isLiked) {
-          await updateDoc(docRef, { likedUsers: arrayRemove(name) });
-          setLikedCards((prev) => prev.filter((n) => n !== name));
-        } else {
-          await updateDoc(docRef, { likedUsers: arrayUnion(name) });
-          setLikedCards((prev) => [...prev, name]);
-        }
-      } catch (err) {
-        console.error("Firestore 저장 오류:", err);
+    const docRef = doc(db, "users", userUid);
+    try {
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        await setDoc(docRef, { likedUsers: [] });
       }
-    } else {
-      const updated = isLiked
-        ? likedCards.filter((n) => n !== name)
-        : [...likedCards, name];
-      setLikedCards(updated);
-      localStorage.setItem("likedUsers", JSON.stringify(updated));
+
+      if (isLiked) {
+        await updateDoc(docRef, { likedUsers: arrayRemove(name) });
+        setLikedCards((prev) => prev.filter((n) => n !== name));
+      } else {
+        await updateDoc(docRef, { likedUsers: arrayUnion(name) });
+        setLikedCards((prev) => [...prev, name]);
+      }
+    } catch (err) {
+      console.error("Firestore 저장 오류:", err);
     }
   };
 
@@ -154,10 +148,7 @@ export default function CardSlider() {
   return (
     <div className="relative max-w-xs mx-auto mt-10">
       <div className="bg-[#FFF9F2] rounded-3xl shadow-md overflow-hidden border border-[#F5E9DA]">
-        <div className="relative">
-          <img src={card.image} alt="profile" className="w-full h-56 object-cover" />
-        </div>
-
+        <img src={card.image} alt="profile" className="w-full h-56 object-cover" />
         <div className="p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div className="text-lg font-semibold text-[#4B2E2E]">
@@ -171,10 +162,8 @@ export default function CardSlider() {
               {isLiked ? "❤️" : "🤍"}
             </button>
           </div>
-
           <div className="text-sm text-[#8A6E5A]">{card.location} · {card.mbti}</div>
           <div className="text-sm text-[#8A6E5A]">{card.school}</div>
-
           <div className="flex flex-wrap gap-2 pt-3">
             {card.tags.map((tag) => (
               <span
@@ -185,7 +174,6 @@ export default function CardSlider() {
               </span>
             ))}
           </div>
-
           <p className="text-sm text-[#5E4A3B] leading-relaxed pt-2">{card.bio}</p>
         </div>
       </div>
