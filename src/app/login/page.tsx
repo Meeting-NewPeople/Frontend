@@ -15,24 +15,30 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       console.log("로그인 시도:", email);
-
+  
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
+  
       console.log("✅ 로그인 성공:", user);
       console.log("닉네임:", user.displayName);
-
+  
       router.push("/");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
+    } catch (error: any) {
+      const code = error.code;
+      if (
+        code === "auth/user-not-found" ||
+        code === "auth/wrong-password" ||
+        code === "auth/invalid-credential"
+      ) {
+        alert("아이디와 비밀번호가 일치하지 않습니다.");
+      } else {
         console.error("❌ 로그인 실패:", error.message);
         alert(`로그인 실패: ${error.message}`);
-      } else {
-        console.error("❌ 알 수 없는 오류:", error);
-        alert("로그인 중 알 수 없는 오류가 발생했습니다.");
       }
     }
+    
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-[#FFFDF9] px-4">

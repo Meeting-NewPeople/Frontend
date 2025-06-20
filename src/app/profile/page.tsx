@@ -7,7 +7,18 @@ import BottomNav from "../components/BottomNav";
 import TopNav from "../components/TopNav";
 import { signOut, deleteUser, User } from "firebase/auth";
 import { auth, db } from "../firebase/firebaseConfig";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc,addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, updateDoc, arrayUnion } from "firebase/firestore";
+
+const getDocFromNickname = async (nickname: string) => {
+  const q = query(collection(db, "users"), where("nickname", "==", nickname));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    return snap.docs[0].ref;
+  }
+  return null;
+};
+
 
 export default function ProfilePage() {
   const [nickname, setNickname] = useState("");
@@ -48,20 +59,48 @@ export default function ProfilePage() {
   const handleDeleteAccount = async () => {
     const user = auth.currentUser;
     if (!user) return;
-
+  
     const reason = prompt("탈퇴 사유를 입력해주세요 (필수):");
     if (!reason || reason.trim() === "") {
       alert("탈퇴 사유를 입력하셔야 합니다.");
       return;
     }
-
+  
     try {
-      // Firestore 유저 정보 삭제
-      await deleteDoc(doc(db, "users", user.uid));
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+  
+      if (!userSnap.exists()) throw new Error("사용자 데이터를 찾을 수 없습니다.");
+  
+      const myData = userSnap.data();
+      const myNickname = myData.nickname;
+      const likedUsers: string[] = myData.likedUsers || [];
+  
+// 🔔 알림 전송 (forEach 끝난 후)
+for (const targetNickname of likedUsers) {
+  const targetRef = await getDocFromNickname(targetNickname);
+  if (!targetRef) continue;
 
-      // Firebase Auth 유저 삭제
-      await deleteUser(user);
+  await updateDoc(targetRef, {
+    notifications: arrayUnion({
+      from: myNickname,
+      type: "withdrawal",
+      timestamp: new Date(),
+    }),
+  });
+}
 
+// 🔒 탈퇴 이메일 저장 (여기!)
+await addDoc(collection(db, "blockedEmails"), {
+  email: user.email,
+  deletedAt: new Date(),
+});
+
+// 🔐 계정 삭제
+await deleteDoc(userRef);
+await deleteUser(user);
+
+  
       alert("회원 탈퇴가 완료되었습니다.");
       router.push("/");
     } catch (error: any) {
@@ -74,6 +113,8 @@ export default function ProfilePage() {
       }
     }
   };
+  
+  
 
   return (
     <>

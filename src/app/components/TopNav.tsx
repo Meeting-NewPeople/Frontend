@@ -8,7 +8,6 @@ import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "../firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
 
-
 interface Notification {
   from: string;
   type: string;
@@ -23,7 +22,6 @@ export default function TopNav() {
 
   const router = useRouter();
 
-
   // 로그인 상태 확인 및 알림 불러오기
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -34,13 +32,12 @@ export default function TopNav() {
         const userDocRef = doc(db, "users", currentUser.uid);
         const docSnap = await getDoc(userDocRef);
 
-        // ❗ 프로필 미등록 시 안내 페이지로 리다이렉트
         if (!docSnap.exists()) {
-          router.push("/profile/require");
+          alert("프로필 정보가 존재하지 않습니다. 회원가입 후 이용해주세요.");
           return;
         }
+        
 
-        // ✅ 알림 불러오기
         const data = docSnap.data();
         setNotifications(data.notifications || []);
       }
@@ -82,21 +79,21 @@ export default function TopNav() {
                 {notifications.length > 0 ? (
                   notifications.map((noti, index) => (
                     <div key={index} className="notification-item">
-                      ❤️ {noti.from} 님이 당신을 좋아합니다
+                      {noti.type === "like"
+                        ? `❤️ ${noti.from} 님이 당신을 좋아합니다`
+                        : `⚠️ ${noti.from} 님이 탈퇴하였습니다`}
                     </div>
                   ))
                 ) : (
-                  <div className="notification-empty">
-                    아직 알림이 없습니다
-                  </div>
+                  <div className="notification-empty">아직 알림이 없습니다</div>
                 )}
               </div>
             )}
           </div>
         )}
 
-        {!isLoading && (
-          user ? (
+        {!isLoading &&
+          (user ? (
             <button onClick={handleLogout} className="auth-btn">
               로그아웃
             </button>
@@ -104,8 +101,7 @@ export default function TopNav() {
             <button onClick={() => router.push("/login")} className="auth-btn">
               로그인
             </button>
-          )
-        )}
+          ))}
       </div>
     </header>
   );
