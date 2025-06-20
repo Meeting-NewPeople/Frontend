@@ -111,3 +111,33 @@
     color: #999;
   }
   
+  .notification-item p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #4B2E2E;
+  }
+  
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  
+  .btn-accept, .btn-reject {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .btn-accept {
+    background-color: #D38B70;
+    color: white;
+  }
+  
+  .btn-reject {
+    background-color: #e2e2e2;
+    color: #444;
+  }
+  
