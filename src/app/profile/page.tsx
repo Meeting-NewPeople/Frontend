@@ -2,17 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Switch } from "@headlessui/react";
 import { ChevronRight } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 import TopNav from "../components/TopNav";
-import { signOut } from "firebase/auth";
+import { signOut, deleteUser, User } from "firebase/auth";
 import { auth, db } from "../firebase/firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
-import { User } from "firebase/auth";
+import { doc, getDoc, deleteDoc,addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, updateDoc, arrayUnion } from "firebase/firestore";
+
+const getDocFromNickname = async (nickname: string) => {
+  const q = query(collection(db, "users"), where("nickname", "==", nickname));
+  const snap = await getDocs(q);
+  if (!snap.empty) {
+    return snap.docs[0].ref;
+  }
+  return null;
+};
+
 
 export default function ProfilePage() {
-  const [matching, setMatching] = useState(true);
   const [nickname, setNickname] = useState("");
   const [profileImage, setProfileImage] = useState("/default-profile.png");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -40,12 +48,73 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      setIsLoggedIn(false);
       alert("로그아웃되었습니다.");
-      router.refresh(); // 상태 새로고침
+      router.refresh();
     } catch (error) {
       console.error("로그아웃 실패:", error);
     }
   };
+
+  const handleDeleteAccount = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    const reason = prompt("탈퇴 사유를 입력해주세요 (필수):");
+    if (!reason || reason.trim() === "") {
+      alert("탈퇴 사유를 입력하셔야 합니다.");
+      return;
+    }
+  
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+  
+      if (!userSnap.exists()) throw new Error("사용자 데이터를 찾을 수 없습니다.");
+  
+      const myData = userSnap.data();
+      const myNickname = myData.nickname;
+      const likedUsers: string[] = myData.likedUsers || [];
+  
+// 🔔 알림 전송 (forEach 끝난 후)
+for (const targetNickname of likedUsers) {
+  const targetRef = await getDocFromNickname(targetNickname);
+  if (!targetRef) continue;
+
+  await updateDoc(targetRef, {
+    notifications: arrayUnion({
+      from: myNickname,
+      type: "withdrawal",
+      timestamp: new Date(),
+    }),
+  });
+}
+
+// 🔒 탈퇴 이메일 저장 (여기!)
+await addDoc(collection(db, "blockedEmails"), {
+  email: user.email,
+  deletedAt: new Date(),
+});
+
+// 🔐 계정 삭제
+await deleteDoc(userRef);
+await deleteUser(user);
+
+  
+      alert("회원 탈퇴가 완료되었습니다.");
+      router.push("/");
+    } catch (error: any) {
+      if (error.code === "auth/requires-recent-login") {
+        alert("최근 로그인 정보가 필요합니다. 다시 로그인 후 시도해주세요.");
+        router.push("/login");
+      } else {
+        console.error("탈퇴 오류:", error);
+        alert("탈퇴 중 오류가 발생했습니다.");
+      }
+    }
+  };
+  
+  
 
   return (
     <>
@@ -56,26 +125,25 @@ export default function ProfilePage() {
           <div className="w-full max-w-md min-h-full bg-[#F6F6F6] flex flex-col rounded-xl shadow p-6 mb-6 mx-4 space-y-6">
             <h2 className="text-lg font-bold">내 프로필</h2>
 
-         {/* 👤 간단한 프로필 정보 */}
-{isLoggedIn && (
-  <div className="flex items-center justify-between px-2">
-    <div className="flex items-center gap-3">
-      <img
-        src={profileImage}
-        alt="프로필 이미지"
-        className="w-14 h-14 rounded-full object-cover border"
-      />
-      <div className="text-base text-gray-800 font-semibold">{nickname} 님</div>
-    </div>
-    <button
-      onClick={() => router.push("/profile/edit")}
-      className="text-[#D38B70] text-sm underline hover:opacity-80 transition whitespace-nowrap"
-    >
-      ✏️ 프로필 수정
-    </button>
-  </div>
-)}
-
+            {/* 👤 간단한 프로필 정보 */}
+            {isLoggedIn && (
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={profileImage}
+                    alt="프로필 이미지"
+                    className="w-14 h-14 rounded-full object-cover border"
+                  />
+                  <div className="text-base text-gray-800 font-semibold">{nickname} 님</div>
+                </div>
+                <button
+                  onClick={() => router.push("/profile/edit")}
+                  className="text-[#D38B70] text-sm underline hover:opacity-80 transition whitespace-nowrap"
+                >
+                  ✏️ 프로필 수정
+                </button>
+              </div>
+            )}
 
             {/* 🔐 로그인 버튼 */}
             {isLoggedIn ? (
@@ -96,38 +164,32 @@ export default function ProfilePage() {
 
             {/* 🔧 설정 */}
             <div className="bg-white rounded-xl shadow-sm divide-y divide-gray-200 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-4">
-                <span className="text-sm">매칭 참여</span>
-                <Switch
-                  checked={matching}
-                  onChange={setMatching}
-                  className={`${
-                    matching ? "bg-[#D38B70]" : "bg-gray-300"
-                  } relative inline-flex h-6 w-11 items-center rounded-full transition`}
-                >
-                  <span
-                    className={`${
-                      matching ? "translate-x-6" : "translate-x-1"
-                    } inline-block h-4 w-4 transform bg-white rounded-full transition`}
-                  />
-                </Switch>
-              </div>
-
               {[
-                "고객센터",
-                "자주 묻는 질문 (FAQ)",
-                "이용약관",
-                "개인정보처리방침",
+                { label: "고객센터", path: "" },
+                { label: "자주 묻는 질문 (FAQ)", path: "/profile/faq" },
+                { label: "이용약관", path: "" },
+                { label: "개인정보처리방침", path: "" },
               ].map((item) => (
                 <button
-                  key={item}
+                  key={item.label}
                   className="w-full flex items-center justify-between px-4 py-4 text-sm hover:bg-gray-50 transition"
+                  onClick={() => item.path && router.push(item.path)}
                 >
-                  <span>{item}</span>
+                  <span>{item.label}</span>
                   <ChevronRight size={16} className="text-[#C2B4A6]" />
                 </button>
               ))}
             </div>
+
+            {/* 🗑️ 회원 탈퇴 */}
+            {isLoggedIn && (
+              <button
+                onClick={handleDeleteAccount}
+                className="w-full text-center mt-4 text-sm text-red-500 underline hover:opacity-80 transition"
+              >
+                회원 탈퇴하기
+              </button>
+            )}
           </div>
         </div>
 

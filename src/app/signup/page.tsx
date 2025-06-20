@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase/firebaseConfig";
 import { doc, setDoc } from "firebase/firestore";
-
+import { query, where, getDocs, collection } from "firebase/firestore";
 
 type UserProfile = {
   nickname: string;
@@ -31,17 +31,29 @@ export default function SignUpPage() {
   const [image, setImage] = useState("");
   const [showCongrats, setShowCongrats] = useState(false);
   const [userData, setUserData] = useState<UserProfile | null>(null);
+  
+
 
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+  
     try {
+      // 🔒 블랙리스트 체크
+      const blacklistQuery = query(collection(db, "blockedEmails"), where("email", "==", email));
+      const blacklistSnap = await getDocs(blacklistQuery);
+      if (!blacklistSnap.empty) {
+        alert("해당 이메일은 탈퇴된 계정으로 다시 가입할 수 없습니다.");
+        return;
+      }
+  
+      // ✅ 회원 생성
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
+  
       await updateProfile(user, { displayName: nickname });
-
+  
       const profile: UserProfile = {
         nickname,
         email,
@@ -53,19 +65,20 @@ export default function SignUpPage() {
         image,
         createdAt: new Date(),
       };
-
+  
       await setDoc(doc(db, "users", user.uid), profile);
-
+  
       setUserData(profile);
       setShowCongrats(true);
     } catch (error: unknown) {
       if (error instanceof Error) {
         alert(`회원가입 실패: ${error.message}`);
       } else {
-        alert(`회원가입 실패: 알 수 없는 오류`);
+        alert("회원가입 실패: 알 수 없는 오류가 발생했습니다.");
       }
     }
   };
+  
 
   if (showCongrats && userData) {
     return (
