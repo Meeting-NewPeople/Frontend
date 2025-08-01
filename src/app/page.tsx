@@ -1,12 +1,13 @@
 // app/page.tsx
 "use client";
 import Link from "next/link";
+import TopNav from "./components/TopNav";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#1E1E1E] text-white flex flex-col justify-center items-center px-4">
       {/* 로고 */}
-      <div className="text-2xl font-bold absolute top-6 left-6">나의 대학 라이프</div>
+      <TopNav />
 
       {/* 중앙 설명 */}
       <div className="text-center max-w-xl mt-20">
@@ -22,30 +23,26 @@ export default function HomePage() {
         <FeatureCard
           title="맛집 탐방"
           description="서울 각 구별 인기 맛집 지도 보기"
-          href="/seoul-map"
+          href="/tabs/foodmap"
           emoji="🍜"
           color="bg-[#EA580C]"
         />
         <FeatureCard
           title="멘토/선배 찾기"
           description="우리 동네 선배, 취업 멘토 찾아보기"
-          href="/mentor"
+          href="/tabs/mentor"
           emoji="🎓"
           color="bg-[#7C3AED]"
         />
         <FeatureCard
           title="미팅/소개팅"
           description="동네 기반 미팅/소개팅 연결 서비스"
-          href="/match"
+          href="/tabs/lovecalendar"
           emoji="💖"
           color="bg-[#DB2777]"
         />
       </div>
 
-      {/* 하단 설명 */}
-      <p className="text-sm text-gray-400 mt-12 text-center">
-        지역 라이프는 동네 생활을 돕는 3가지 주요 기능을 제공합니다.
-      </p>
     </div>
   );
 }

@@ -1,137 +1,78 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { db, auth } from "../firebase/firebaseConfig";
-import TopNav from "../components/TopNav";
-import BottomNav from "../components/BottomNav";
-import { MessageCircle } from "lucide-react";
+import BottomNav from "@/app/components/BottomNav";
+import TopNav from "@/app/components/TopNav";
 import { useRouter } from "next/navigation";
 
-// 🔸 유저 타입 정의
-type UserData = {
-  nickname: string;
-  age: number;
-  mbti: string;
-  location?: string;
-  tags?: string[];
-  image?: string;
-  bio?: string;
-  likedUsers?: string[];
+type Mentor = {
+  name: string;
+  nickname: string; // 🔸 채팅 이동용
+  major: string;
+  tag: string[];
+  description: string;
 };
 
-export default function ChatPage() {
-  const [user, loading] = useAuthState(auth);
-  const [mutuals, setMutuals] = useState<UserData[]>([]);
-  const [myData, setMyData] = useState<UserData | null>(null);
+const dummyMentors: Mentor[] = [
+  {
+    name: "김서강",
+    nickname: "lawalpaca",
+    major: "서강대 법학과",
+    tag: ["로스쿨", "면접 꿀팁", "학점 관리"],
+    description: "현직 변호사, 진로 상담 가능",
+  },
+  {
+    name: "김성균",
+    nickname: "govrice",
+    major: "성균관대 행정학과",
+    tag: ["행정고시", "PSAT 전략", "스터디 코칭"],
+    description: "고시생 멘토 경험 다수",
+  },
+  {
+    name: "김서울",
+    nickname: "samlupt",
+    major: "서울대 전기공학부",
+    tag: ["삼성전자", "인턴 경험", "자소서 첨삭"],
+    description: "대기업 취업 방향 제시",
+  },
+];
+
+export default function MentorPage() {
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchMutualLikes = async () => {
-      if (!user) return;
-
-      const myDoc = await getDoc(doc(db, "users", user.uid));
-      if (!myDoc.exists()) return;
-
-      const myData = myDoc.data() as UserData;
-      setMyData(myData);
-
-      const myLikes: string[] = myData.likedUsers || [];
-
-      const usersSnap = await getDocs(collection(db, "users"));
-      const mutuals: UserData[] = [];
-
-      usersSnap.forEach((docSnap) => {
-        const data = docSnap.data() as UserData;
-        if (
-          data.nickname &&
-          myLikes.includes(data.nickname) &&
-          data.likedUsers?.includes(myData.nickname)
-        ) {
-          mutuals.push(data);
-        }
-      });
-
-      setMutuals(mutuals);
-    };
-
-    fetchMutualLikes();
-  }, [user]);
-
-  if (!user) {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-b from-[#FFF3E6] to-[#FFEAD8] text-center px-6 space-y-4">
-        <div className="text-6xl mb-2 animate-bounce">🤎</div>
-        <p className="text-[#B36B00] text-2xl font-bold mb-4">로그인이 필요해요</p>
-        <p className="text-[#8A6E5A] text-base leading-relaxed mb-4">
-  매칭 기능을 이용하려면 <br />먼저 로그인해주세요
-  <br />
-  <span className="text-sm text-[#A27C68]">
-    (서로 좋아요를 누르면 매칭돼요!)
-  </span>
-</p>
-        <button
-          onClick={() => router.push("/login")}
-          className="bg-[#D38B70] text-white px-6 py-2 rounded-xl hover:bg-[#b7745a] transition mt-2"
-        >
-          로그인하러 가기
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFDF9]">
+    <div className="bg-[#111827] min-h-screen text-white pt-[72px] px-4 pb-20">
       <TopNav />
+      <h1 className="text-xl font-bold text-center mb-6">🎓 선배 & 멘토 찾기</h1>
 
-      <main className="flex-grow pt-24 pb-28 px-4">
-      <div className="text-center mb-6">
-    <p className="text-[#8A6E5A] text-base leading-relaxed">
-      매칭된 사용자와 채팅할 수 있어요 💬
-      <br />
-      <span className="text-sm text-[#A27C68]">
-        (서로 좋아요를 누르면 매칭돼요!)
-      </span>
-    </p>
-  </div>
-        {loading || !myData ? (
-          <div className="text-center text-[#B36B00] mt-20">불러오는 중...</div>
-        ) : mutuals.length === 0 ? (
-          <div className="flex flex-col items-center text-center mt-20">
-            <MessageCircle size={64} className="text-[#D38B70] mb-4" />
-            <h1 className="text-2xl font-bold text-[#D38B70] mb-2">아직 채팅 상대가 없습니다!</h1>
-            <p className="text-sm text-gray-500">
-              서로 좋아요를 누르면 <br /> 채팅할 수 있어요 💬
-            </p>
+      {dummyMentors.map((mentor) => (
+        <div
+          key={mentor.nickname}
+          className="bg-[#1F2937] p-5 rounded-xl shadow-md space-y-3 mb-5 border border-[#2d3748]"
+        >
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-lg font-semibold text-[#FBBF24]">{mentor.name}</div>
+              <div className="text-sm text-gray-300">{mentor.major}</div>
+            </div>
+            <button
+              onClick={() => router.push(`/chat/${mentor.nickname}`)}
+              className="bg-[#B36B00] text-white px-3 py-1.5 rounded-md text-sm hover:bg-[#a35f00]"
+            >
+              멘토님께 연락하기
+            </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-            {mutuals.map((user) => (
-              <div
-                key={user.nickname}
-                className="bg-white rounded-xl shadow border border-[#F1E8DC] overflow-hidden cursor-pointer"
-                onClick={() => {
-                  alert(`${user.nickname}님과의 채팅으로 이동합니다`);
-                  setTimeout(() => {
-                    router.push(`/chat/${user.nickname}`);
-                  }, 100);
-                }}
+          <div className="text-sm text-gray-200">{mentor.description}</div>
+          <div className="flex flex-wrap gap-2">
+            {mentor.tag.map((t) => (
+              <span
+                key={t}
+                className="text-xs bg-[#374151] text-white px-2 py-1 rounded-full"
               >
-                <img
-                  src={user.image || "/default-profile.png"}
-                  alt={user.nickname}
-                  className="w-full aspect-square object-cover"
-                />
-                <div className="p-3 text-left">
-                  <div className="text-sm font-semibold text-[#4B2E2E]">{user.nickname}</div>
-                  <div className="text-xs text-[#8A6E5A]">{user.mbti} · {user.age}세</div>
-                </div>
-              </div>
+                #{t}
+              </span>
             ))}
           </div>
-        )}
-      </main>
+        </div>
+      ))}
 
       <BottomNav />
     </div>

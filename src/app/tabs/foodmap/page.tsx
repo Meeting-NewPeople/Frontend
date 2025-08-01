@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 // @ts-ignore
 import { feature } from "topojson-client";
 import BottomNav from "@/app/components/BottomNav";
+import TopNav from "@/app/components/TopNav";
 
 export default function SeoulDistrictMapPage() {
   const router = useRouter();
@@ -207,8 +208,10 @@ export default function SeoulDistrictMapPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#FFFCF3] p-4">
-      <h1 className="text-2xl font-bold text-center text-[#4B2E2E] mb-1">우리 지역 맛집 알아보기</h1>
+    <div className="min-h-screen bg-[#121212] text-white p-4">
+        <TopNav />
+      <h1 className="text-2xl font-bold text-center text-white mb-1 mt-12">
+      우리 지역 맛집 알아보기</h1>
       <p className="text-center text-[#7A6C5D] text-sm mb-5">
         아래 지도에서 지역을 선택하세요.
       </p>

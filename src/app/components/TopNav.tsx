@@ -26,15 +26,7 @@ export default function TopNav() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       setIsLoading(false);
-      if (currentUser) {
-        const ref = doc(db, "users", currentUser.uid);
-        const snap = await getDoc(ref);
-        if (!snap.exists()) {
-          alert("프로필 정보가 없습니다.");
-          return;
-        }
-        setNotifications(snap.data().notifications || []);
-      }
+      
     });
     return () => unsubscribe();
   }, []);
@@ -49,34 +41,30 @@ export default function TopNav() {
   const updateNotification = async (idx: number, status: "accepted" | "rejected") => {
     if (!user) return;
     const userRef = doc(db, "users", user.uid);
-  
+
     let updated = [...notifications];
-  
     if (status === "rejected") {
-      // 거절한 알림 삭제
       updated.splice(idx, 1);
     } else {
-      // 수락 시 상태만 업데이트
       const notif = notifications[idx];
       updated[idx] = { ...notif, status };
     }
-  
+
     await updateDoc(userRef, { notifications: updated });
     setNotifications(updated);
-  
+
     if (status === "accepted") {
       alert(`${notifications[idx].from} 님과 매칭되었습니다! 🎉`);
     } else {
       alert(`${notifications[idx].from} 님의 요청을 거절했습니다.`);
     }
   };
-  
 
   return (
     <header className="topnav">
-      <Link href="/">
-        <h1 className="logo">Quokka</h1>
-      </Link>
+      <div className="left-section">
+        <Link href="/" className="logo">🎓 나의 대학 라이프</Link>
+      </div>
       <div className="nav-actions">
         {user && (
           <div className="notification-wrapper">
@@ -90,7 +78,7 @@ export default function TopNav() {
                     {n.type === "like" && (!n.status || n.status === "pending") && (
                       <>
                         <p>
-                          <strong>{n.from}</strong> 님이 회원님의 프로필에 좋아요를 눌렀습니다.  
+                          <strong>{n.from}</strong> 님이 회원님의 프로필에 좋아요를 눌렀습니다.<br />
                           수락하시겠습니까?
                         </p>
                         <div className="btn-group">
@@ -103,7 +91,7 @@ export default function TopNav() {
                       <p>💌 <strong>{n.from}</strong> 님과 매칭되었습니다.</p>
                     )}
                     {n.type === "like" && n.status === "rejected" && (
-                      <p>❌ <strong>{n.from}</strong> 님의 좋아요 요청을 거절하셨습니다.</p>
+                      <p>❌ <strong>{n.from}</strong> 님의 요청을 거절하셨습니다.</p>
                     )}
                     {n.type === "withdrawal" && (
                       <p>⚠️ <strong>{n.from}</strong> 님이 탈퇴하였습니다.</p>
