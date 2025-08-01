@@ -8,6 +8,9 @@ declare global {
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+// @ts-ignore
+import { feature } from "topojson-client";
+import BottomNav from "@/app/components/BottomNav";
 
 export default function SeoulDistrictMapPage() {
   const router = useRouter();
@@ -34,7 +37,9 @@ export default function SeoulDistrictMapPage() {
         const infowindow = new window.kakao.maps.InfoWindow({ removable: true });
 
         const seoulMap = await (await fetch("/data/seoul.geojson")).json();
-        const dongData = await (await fetch("/data/seoul_districts_topo.json")).json();
+        const dongDataRaw = await (await fetch("/data/seoul_districts_topo.json")).json();
+        const dongData = feature(dongDataRaw, dongDataRaw.objects.admdong_seoul_codeEdit_1);
+
         const centers = [
             { name: "강남구", lat: 37.5172, lng: 127.0473 },
             { name: "강동구", lat: 37.5301, lng: 127.1238 },
@@ -160,7 +165,6 @@ export default function SeoulDistrictMapPage() {
             const dongs = dongData.features.filter((f: any) => f.properties.SIG_KOR_NM === name);
             displayDongAreas(dongs);
             addGoBackButton();
-            console.log(dongs);
           });
         };
 
@@ -169,7 +173,7 @@ export default function SeoulDistrictMapPage() {
           goBackButton = document.createElement("button");
           goBackButton.innerText = "구 다시 선택하기";
           goBackButton.style.cssText =
-            "position:absolute;top:20px;right:20px;background:#B36B00;color:white;padding:10px 16px;border-radius:8px;z-index:100;";
+            "position:absolute;top:20px;right:40px;background:#B36B00;color:white;padding:10px 16px;border-radius:8px;z-index:100;";
           goBackButton.onclick = () => resetRegions();
           document.body.appendChild(goBackButton);
         };
@@ -213,7 +217,7 @@ export default function SeoulDistrictMapPage() {
           <div ref={mapRef} className="w-full h-full" />
         </div>
       </div>
-      
+      <BottomNav />
     </div>
   );
 }
