@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Home, MessageSquare, Heart, User } from "lucide-react";
+import { Map, GraduationCap, Heart, User } from "lucide-react";
 import Link from "next/link";
 
 export default function BottomNav() {
@@ -11,62 +11,46 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md px-6 py-2 flex justify-around z-50">
-      <Link href="/" className="flex flex-col items-center text-[#B36B00]">
-        <Home
+      <Link href="/tabs/foodmap" className="flex flex-col items-center text-[#B36B00]">
+        <Map
           size={24}
-          fill={isActive("/") ? "#B36B00" : "none"}
+          fill={isActive("/foodmap") ? "#B36B00" : "none"}
           stroke="#B36B00"
         />
-        <span
-          className={`text-xs mt-1 ${
-            isActive("/") ? "font-bold text-[#B36B00]" : "text-[#B36B00]"
-          }`}
-        >
-          홈
+        <span className={`text-xs mt-1 ${isActive("/foodmap") ? "font-bold" : ""}`}>
+          맛집지도
         </span>
       </Link>
 
-      <Link href="/chat" className="flex flex-col items-center text-[#B36B00]">
-        <MessageSquare
+      <Link href="/tabs/mentor" className="flex flex-col items-center text-[#B36B00]">
+        <GraduationCap
           size={24}
-          fill={isActive("/chat") ? "#B36B00" : "none"}
+          fill={isActive("/mentor") ? "#B36B00" : "none"}
           stroke="#B36B00"
         />
-        <span
-          className={`text-xs mt-1 ${
-            isActive("/chat") ? "font-bold text-[#B36B00]" : "text-[#B36B00]"
-          }`}
-        >
-          매칭
+        <span className={`text-xs mt-1 ${isActive("/mentor") ? "font-bold" : ""}`}>
+          대학멘토
         </span>
       </Link>
 
-      <Link href="/likes" className="flex flex-col items-center text-[#B36B00]">
+      <Link href="/tabs/lovecalendar" className="flex flex-col items-center text-[#B36B00]">
         <Heart
           size={24}
-          fill={isActive("/likes") ? "#B36B00" : "none"}
+          fill={isActive("/lovecalendar") ? "#B36B00" : "none"}
           stroke="#B36B00"
         />
-        <span
-          className={`text-xs mt-1 ${
-            isActive("/likes") ? "font-bold text-[#B36B00]" : "text-[#B36B00]"
-          }`}
-        >
-          좋아요
+        <span className={`text-xs mt-1 ${isActive("/lovecalendar") ? "font-bold" : ""}`}>
+          러브캘린더
         </span>
       </Link>
 
-      <Link href="/profile" className="flex flex-col items-center text-[#B36B00]">
+      <Link href="/tabs/profile" className="flex flex-col items-center text-[#B36B00]">
         <User
           size={24}
           fill={isActive("/profile") ? "#B36B00" : "none"}
           stroke="#B36B00"
         />
-        <span
-          className={`text-xs mt-1 ${
-            isActive("/profile") ? "font-bold text-[#B36B00]" : "text-[#B36B00]"
-          }`}
-        >
+        <span className={`text-xs mt-1 ${isActive("/profile") ? "font-bold" : ""}`}>
           프로필
         </span>
       </Link>
